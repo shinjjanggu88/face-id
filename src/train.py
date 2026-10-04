@@ -6,6 +6,7 @@ from model import FaceCNN
 
 
 dataset = FaceDataset()
+
 print("전체 이미지 개수:", len(dataset))
 
 train_size = int(len(dataset) * 0.8)
@@ -14,6 +15,7 @@ train_dataset, test_dataset = random_split(
     dataset,
     [train_size, test_size]
 )
+
 print("학습 이미지 개수:", len(train_dataset))
 print("테스트 이미지 개수:", len(test_dataset))
 
@@ -22,15 +24,14 @@ train_loader = DataLoader(
     batch_size=4,
     shuffle=True
 )
+
 test_loader = DataLoader(
     test_dataset,
     batch_size=4,
     shuffle=False
 )
 
-
 model = FaceCNN()
-
 
 criterion = nn.CrossEntropyLoss()
 
@@ -38,7 +39,6 @@ optimizer = torch.optim.Adam(
     model.parameters(),
     lr=0.001
 )
-
 
 epochs = 20
 
@@ -67,6 +67,26 @@ for epoch in range(epochs):
         f"Epoch [{epoch + 1}/{epochs}], "
         f"Loss: {average_loss:.4f}"
     )
+
+model.eval()
+
+correct = 0
+total = 0
+
+with torch.no_grad():
+    for images, labels in test_loader:
+
+        outputs = model(images)
+
+        _, predicted = torch.max(outputs, 1)
+
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+
+accuracy = correct / total * 100
+
+print("테스트 정확도:", accuracy, "%")
 
 
 torch.save(model.state_dict(), "face_cnn.pth")
